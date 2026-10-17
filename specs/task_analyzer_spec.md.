@@ -1,0 +1,35 @@
+# Especificação do TaskAnalyzer
+
+## 1. Objetivo
+Analisar uma coleção de tarefas e produzir indicadores
+quantitativos sobre sua situação e conclusão.
+
+## 2. Interface
+O sistema deverá disponibilizar:
+- Função analyze_tasks.
+- Exceção personalizada TaskValidationError.
+
+## 3. Indicadores
+A análise deverá informar:
+- total_tarefas;
+- total_concluidas;
+- total_pendentes;
+- tempo_medio_conclusao_horas;
+- tempo médio de conclusão por prioridade;
+- taxa_atraso_percentual.
+
+## 4. Validações
+- Uma data de conclusão não pode ser anterior à data de criação.
+- Datas inconsistentes devem gerar TaskValidationError.
+- Entradas vazias devem ser tratadas sem divisão por zero.
+- A ausência de tarefas concluídas deve resultar em média 0.0.
+
+## 5. Testes de aceitação
+- Cenário 1: verificar os indicadores com tarefas de exemplo.
+- Cenário 2: verificar a exceção para datas inconsistentes.
+- Casos de borda: verificar entradas vazias e tarefas pendentes.
+
+## 6. Ponto pendente de confirmação
+O formato exato dos dados, os nomes dos campos, a definição
+de atraso e as regras de cálculo por prioridade devem ser
+confirmados com a especificação original da Fase 1.
