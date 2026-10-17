@@ -1,0 +1,97 @@
+from datetime import datetime
+from typing import Any
+
+
+class TaskValidationError(ValueError):
+    """Erro para dados de tarefas inválidos."""
+
+
+def analyze_tasks(tasks: list[dict[str, Any]]) -> dict[str, Any]:
+    """Calcula indicadores sobre uma lista de tarefas."""
+    if not isinstance(tasks, list):
+        raise TaskValidationError("A entrada deve ser uma lista.")
+
+    total = len(tasks)
+    concluidas = 0
+    pendentes = 0
+    tempos: list[float] = []
+    tempos_por_prioridade: dict[str, list[float]] = {}
+    atrasadas = 0
+
+    for task in tasks:
+        if not isinstance(task, dict):
+            raise TaskValidationError("Cada tarefa deve ser um dicionário.")
+
+        if "status" not in task or "prioridade" not in task:
+            raise TaskValidationError(
+                "Cada tarefa precisa de status e prioridade."
+            )
+
+        status = task["status"]
+        prioridade = task["prioridade"]
+
+        if not isinstance(status, str) or not isinstance(prioridade, str):
+            raise TaskValidationError("Status e prioridade devem ser textos.")
+
+        data_criacao = task.get("data_criacao")
+        data_conclusao = task.get("data_conclusao")
+
+        if data_criacao is not None:
+            if not isinstance(data_criacao, datetime):
+                raise TaskValidationError(
+                    "data_criacao deve ser um objeto datetime."
+                )
+
+        if status.lower() == "concluida":
+            if not isinstance(data_conclusao, datetime):
+                raise TaskValidationError(
+                    "Tarefa concluída precisa de data_conclusao."
+                )
+
+            if data_criacao is None:
+                raise TaskValidationError(
+                    "Tarefa concluída precisa de data_criacao."
+                )
+
+            if data_conclusao < data_criacao:
+                raise TaskValidationError(
+                    "Conclusão anterior à criação."
+                )
+
+            horas = (data_conclusao - data_criacao).total_seconds() / 3600
+
+            concluidas += 1
+            tempos.append(horas)
+            tempos_por_prioridade.setdefault(prioridade, []).append(horas)
+
+            prazo = task.get("data_prazo")
+            if prazo is not None:
+                if not isinstance(prazo, datetime):
+                    raise TaskValidationError(
+                        "data_prazo deve ser um objeto datetime."
+                    )
+                if data_conclusao > prazo:
+                    atrasadas += 1
+
+        else:
+            pendentes += 1
+
+    media = sum(tempos) / len(tempos) if tempos else 0.0
+
+    medias_prioridade = {
+        prioridade: sum(valores) / len(valores)
+        for prioridade, valores in tempos_por_prioridade.items()
+    }
+
+    taxa_atraso = (
+        atrasadas / concluidas * 100 if concluidas else 0.0
+    )
+
+    return {
+        "total_tarefas": total,
+        "total_concluidas": concluidas,
+        "total_pendentes": pendentes,
+        "tempo_medio_conclusao_horas": media,
+        "tempo_medio_por_prioridade": medias_prioridade,
+        "taxa_atraso_percentual": taxa_atraso,
+    }
